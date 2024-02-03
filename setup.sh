@@ -108,10 +108,12 @@ printf "%s\n# Adjusting macOS...\n%s" $yellow $end
   #
   # System Preferences > Dock > Automatically hide and show the Dock:
   defaults write com.apple.dock autohide -bool true
+  # System Preferences > Dock > Magnification:
+  defaults write com.apple.dock magnification -bool false
   # System Preferences > Dock > Size:
   defaults write com.apple.dock tilesize -int 80
   # System Preferences > Mission Control > Automatically rearrange Spaces based on most recent use
-  defaults write com.apple.dock mru-spaces -bool false
+  defaults write com.apple.dock mru-spaces -bool true
   # Clear out the dock of default icons
   defaults delete com.apple.dock persistent-apps
   defaults delete com.apple.dock persistent-others
@@ -221,8 +223,8 @@ done
 # Install homebrew casks
 printf "%s\n  Installing Homebrew casks...\n%s" $yellow $end
 casks=( vlc signal bitwarden github brave-browser visual-studio-code blender betterdisplay \
-  bartender adobe-creative-cloud discord docker fantasttical home-assistant jellyfin webstorm \
-  nextcloud slack figma pycharm-ce spotify steam balenaetcher 'qfinder-pro' 'sweet-home3d' via vial zoom )
+  bartender adobe-creative-cloud discord docker fantastical home-assistant jellyfin webstorm \
+  nextcloud slack figma pycharm-ce spotify steam balenaetcher 'qfinder-pro' 'sweet-home3d' via vial zoom displaylink )
 for cask in "${casks[@]}"
 do
   printf "%s  - Install $cask%s"
@@ -235,6 +237,40 @@ do
     printf "%s  \t- Already installed\n%s" $cyan $end
   fi
 done
+
+# Add nvm to Terminal Session
+printf "%s\n  Adding NVM to terminal session...\n%s" $yellow $end
+source ~/.nvm/nvm.sh
+
+#
+# Install NodeJS
+#
+printf "%s\n# Installing Node.js...\n%s" $yellow $end
+node_versions=( 14 16 18 )
+for node_version in "${node_versions[@]}"
+do
+  printf "%s  - Installing Node.js version $node_version%s"
+  nvm install $node_version
+done
+nvm use 18
+nvm alias default 18
+printf "%s  Configuring nvm to use latest long-term support version%s"
+
+#
+# Add apps back to dock
+#
+printf "%s\n  Adding apps to dock...\n%s" $yellow $end
+docked=('/Applications/Qfinder Pro.app' '/Applications/Fantastical.app' '/System/Applications/Mail.app' '/System/Applications/Messages.app' \
+        '/Applications/Brave Browser.app' '/Applications/Discord.app' '/Applications/WebStorm.app' '/Applications/GitHub Desktop.app' '/System/Applications/Utilities/Terminal.app' \
+        '/Applications/Bitwarden.app')
+
+for app in "${docked[@]}"
+do
+  printf "%s  - Docking $app\n%s"
+  defaults write com.apple.dock persistent-apps -array-add "<dict><key>tile-data</key><dict><key>file-data</key><dict><key>_CFURLString</key><string>$app</string><key>_CFURLStringType</key><integer>0</integer></dict></dict></dict>"
+done
+
+killall Dock
 
 #
 # All done!
